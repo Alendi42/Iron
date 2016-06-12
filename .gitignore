@@ -1,0 +1,5 @@
+*.log
+leecher2.config
+output/
+sub/
+*pycache*
