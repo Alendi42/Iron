@@ -12,8 +12,8 @@ requests
 
 --你在zimuzu网站的用户名与密码
 [user]
-id = <id>
-password = <password>
+id = id
+password = password
 
 --你所订阅的剧集名称，字幕语言以及用于放置取得字幕的目录
 [resource]
@@ -25,9 +25,9 @@ output_dir = D:\git-workspace\Iron\output\
 [email]
 subscriber = lala@163.com, vava@163.com
 host = smtp.163.com
-user = yenancs
+user = user
 postfix = 163.com
-password = 8Arrowen
+password = password
 
 --设定字幕查询起始时间，工具只会获取晚于这个时间所上传的字幕。
 --每执行一次工具，这里的时间配置都会被自动更新。
