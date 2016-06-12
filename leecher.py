@@ -36,6 +36,7 @@ headers = {'Connection': 'keep-alive',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept-Language': 'zh-CN,zh;q=0.8'
            }
+
 config = configparser.ConfigParser()
 config.read('leecher.config',encoding='utf-8')
 
@@ -236,8 +237,11 @@ def capture_resource_download_link(url, item_list,item_2_dlink):
             item_2_dlink[item] = download_link
 
 
-def generate_mail(item_2_dlink, subtitle_location):
+def generate_notification(item_2_dlink, subtitle_location):
     logging.info(item_2_dlink)
+
+    if not item_2_dlink:
+        return
     
     content = ""
     for item_name in item_2_dlink:
@@ -245,6 +249,9 @@ def generate_mail(item_2_dlink, subtitle_location):
         content = "%s name: %s\n download link: \n%s\n" %(content,item_name, item_2_dlink[item_name])
 
     content = content + "\nAll download link:\n" + "\n".join(item_2_dlink.values())
+
+    with open(os.path.join(subtitle_location,'link.txt'),'w') as file:
+        file.write(content)
     logging.info(content)
     send_mail("New subtitles downloaded!",content)
     
@@ -263,7 +270,7 @@ def burn():
     
     item_2_dlink = collect_resource_download_link(resource_name_map)
 
-    generate_mail(item_2_dlink, subtitle_location)
+    generate_notification(item_2_dlink, subtitle_location)
         
                 
         
