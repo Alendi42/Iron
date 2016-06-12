@@ -12,9 +12,7 @@ requests
 
 --你在zimuzu网站的用户名与密码
 [user]
-
 id = <id>
-
 password = <password>
 
 --你所订阅的剧集名称，字幕语言以及用于放置取得字幕的目录
