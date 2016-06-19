@@ -25,12 +25,13 @@ def extract(arch_name, output_loc, lang_list = None):
     z = None
     if path.endswith('.zip'):
         z = zipfile.ZipFile(path,'r')
-    #elif path.endswith('.rar'):
-    #    z = rarfile.RarFile(path,'r')
+    elif path.endswith('.rar'):
+        z = rarfile.RarFile(path,'r')
 
     if z:
         for info in z.infolist():
             name = info.filename
+            name = name.replace('\\','/')
             if name.endswith('.srt') or name.endswith('.ass'):
                 #zipfile use cp437 to decode file name, so we have to encode it as cp437 first and then decode it with GBK
                 #otherwise, Chinese will be gibberish
@@ -57,7 +58,7 @@ def extract(arch_name, output_loc, lang_list = None):
             elif name.endswith('.zip') or name.endswith('.rar'):
                 print("find child zip/rar file")
                 z.extract(info,temp_dir)
-                result = result.union(extract(name, output_loc))
+                result = result.union(extract(name, output_loc,lang_list))
     print(result)           
     return result
 
@@ -65,7 +66,7 @@ if __name__ == '__main__':
     
 
     sub_dir = "D:/git-workspace/Iron/sub/"
-    zip1 = "6.zip"
+    zip1 = "f.rar"
 
     output_dir = "D:/git-workspace/Iron/sub/result/"
 

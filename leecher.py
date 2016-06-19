@@ -53,9 +53,13 @@ def login():
 
 def send_mail(sub,content):
 
-    
-    to_list = [str.strip() for str in config.get('email','subscriber').split(',')]
-    logging.info("Send mails to " + str(to_list))
+
+    subscribers = config.get('email','subscriber')
+    logging.info("Send mails to " + subscribers)
+    if subscribers:
+        to_list = [str.strip() for str in subscribers.split(',')]
+    else:
+        return False
     
     mail_host = config.get('email','host')
     mail_user = config.get('email','user')
