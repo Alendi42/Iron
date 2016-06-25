@@ -1,20 +1,24 @@
 import re
-import requests
 import time
-import json
+from datetime import datetime
+import os,os.path
+import logging
 
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+
 
 from bs4 import BeautifulSoup
 import configparser
+import requests
+import zipfile
 
 import downloader
 import unzipper
-from datetime import datetime
-import os,os.path
 
-import logging
+
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
@@ -51,7 +55,7 @@ def login():
 
     logging.info("Login cookie " + r.headers['set-cookie'])
 
-def send_mail(sub,content):
+def send_mail(sub,content,sub_zip):
 
 
     subscribers = config.get('email','subscriber')
@@ -65,13 +69,18 @@ def send_mail(sub,content):
     mail_user = config.get('email','user')
     mail_pass = config.get('email','password')
     mail_postfix = config.get('email','postfix')
-
     
+    attach_zip = open(sub_zip,'rb')
+    attachment = MIMEApplication(attach_zip.read(),Name='sub.zip')
+    attachment.add_header('Content-Disposition', 'attachment', filename='sub.zip')
     me="zimuzu"+"<"+mail_user + "@" + mail_postfix + ">"
-    msg = MIMEText(content,_subtype='plain',_charset='utf-8')
+    #msg = MIMEText(content,_subtype='plain',_charset='utf-8')
+    msg = MIMEMultipart()
     msg['Subject'] = sub
     msg['From'] = me
     msg['To'] = ";".join(to_list)
+    msg.attach(MIMEText(content))
+    msg.attach(attachment)
     try:
         server = smtplib.SMTP()
         server.connect(mail_host)
@@ -254,10 +263,19 @@ def generate_notification(item_2_dlink, subtitle_location):
 
     content = content + "\nAll download link:\n" + "\n".join(item_2_dlink.values())
 
+    sub_zip = zipfile.ZipFile(os.path.join(subtitle_location,'sub.zip'),'w')
+    for sub in os.listdir(subtitle_location):
+        #zip the received subtitle files
+        if sub.endswith('.ass') or sub.endswith('.srt'):
+            sub_zip.write(os.path.join(subtitle_location,sub),sub)
+
+    sub_zip.close()
+    sub_zip_file = os.path.join(subtitle_location, 'sub.zip')
+    
     with open(os.path.join(subtitle_location,'link.txt'),'w') as file:
         file.write(content)
     logging.info(content)
-    send_mail("New subtitles downloaded!",content)
+    send_mail("New subtitles downloaded!",content,sub_zip_file)
     
     
     
@@ -286,12 +304,6 @@ def burn():
     
 
 burn()
-#logging.info(pickup_subtitle_link('http://www.zimuzu.tv/subtitle/10646', datetime.min))
-#load_config()
-#login('Tenka','everydog')
 
-#capture_resource_download_link('http://www.zimuzu.tv/resource/list/34442','balala')
-#result = inquiry_subtitle('欲奴')
-#logging.info(result)
     
     
