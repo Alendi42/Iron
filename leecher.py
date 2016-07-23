@@ -2,7 +2,7 @@ import re
 import time
 from datetime import datetime
 import os,os.path
-import logging
+import logging,json
 
 import smtplib
 from email.mime.text import MIMEText
@@ -12,7 +12,7 @@ from email.mime.application import MIMEApplication
 
 from bs4 import BeautifulSoup
 import configparser
-import requests
+import requests,requests.utils
 import zipfile
 
 import downloader
@@ -26,7 +26,11 @@ logging.basicConfig(level=logging.INFO,
                     filename='leecher.log',
                     filemode='w')
 
-logging.info('123456')
+sh = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+sh.setFormatter(formatter)
+logger = logging.getLogger()
+logger.addHandler(sh)
 
 s = requests.Session()
 website = 'http://www.zimuzu.tv'
@@ -44,16 +48,38 @@ headers = {'Connection': 'keep-alive',
 config = configparser.ConfigParser()
 config.read('leecher.config',encoding='utf-8')
 
+cookie_file_name = '.cookies'
 def login():
-    user = config.get('user','id')
-    password = config.get('user','password')
-    logging.info("Login as " + user)
-    
-    url = website + '/User/Login/ajaxLogin'
-    payload = 'account=%s&password=%s&from=loginpage&remember=0&url_back='%(user, password)
-    r = s.post(url, headers=headers, data=payload)
 
-    logging.info("Login cookie " + r.headers['set-cookie'])
+    #cf = open('.cookie','r')
+    if os.path.exists(cookie_file_name):
+        
+        cf = open(cookie_file_name,'r')
+        cookies = json.load(cf)
+        s.cookies.update(cookies)
+
+        logging.info("Load cookies from cookie file: " + str(cookies))
+
+        r = s.get(website+"/user/login",headers = headers)
+        print("Old cookies:" + str(r.headers))
+    else:
+        user = config.get('user','id')
+        password = config.get('user','password')
+        logging.info("Login as " + user)
+        
+        url = website + '/User/Login/ajaxLogin'
+        payload = 'account=%s&password=%s&from=loginpage&remember=0&url_back='%(user, password)
+        r = s.post(url, headers=headers, data=payload)
+
+        cookies = requests.utils.dict_from_cookiejar(r.cookies)
+        logging.info("Login cookie " + str(cookies))
+        print("New Cookies:" + str(cookies))
+
+        with open(cookie_file_name,'w') as cf:
+            json.dump(cookies, cf)
+    
+    
+    
 
 def send_mail(sub,content,sub_zip):
 
